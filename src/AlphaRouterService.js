@@ -61,7 +61,7 @@ export const getPrice = async (inputAmount, slippageAmount, deadline, walletAddr
   }
 
   const quoteAmountOut = route.quote.toFixed(6)
-  const ratio = (inputAmount / quoteAmountOut).toFixed(3)
+  const ratio = (inputAmount / quoteAmountOut).toFixed(10)
 
   return [
     transaction,

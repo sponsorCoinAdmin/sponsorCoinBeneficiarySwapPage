@@ -92,7 +92,6 @@ function App() {
     })
   }
 
-
   return (
     <div className="App">
       <div className="appNav">
@@ -155,7 +154,7 @@ function App() {
           <div className="ratioContainer">
             {ratio && (
               <>
-                {`1 UNI = ${ratio} WETH`}
+                {`1 SPCoin = ${ratio} ${tokenName}`}
               </>
             )}
           </div>
