@@ -1,1 +1,1 @@
-# sponsorCoinSwapPage
+# scRecipientSwapPage
