@@ -9,7 +9,7 @@ import ConfigModal from './components/ConfigModal';
 import CurrencyField from './components/CurrencyField';
 
 import BeatLoader from "react-spinners/BeatLoader";
-import { getWethContract as getTokenContract, getUniContract as getSpCoinContract, getPrice, runSwap } from './AlphaRouterService'
+import { getWethContract as getTokenContract, getSpCoinContract , getPrice, runSwap } from './AlphaRouterService'
 
 function App() {
   const [provider, setProvider] = useState(undefined)
@@ -41,34 +41,71 @@ function App() {
 
       const spCoinContract = getSpCoinContract()
       setSpCoinContract(spCoinContract)
+
+      // Listener Events
+      provider.on("accountsChanged", handleAccountsChanged);
+      provider.on("chainChanged", handleChainChanged);
     }
     onLoad()
   }, [])
+
+  const handleAccountsChanged = (accounts) => {
+    console.log("AccountsChanged")
+    alert("AccountsChanged")
+  }
+
+  const handleChainChanged = (chainId) => {
+    console.log("chainId = " + chainId)
+    alert("chainId = " + chainId)
+  }
+
+  async function sleep(milliseconds) {
+    console.log("Sleeping " + milliseconds/1000 + " Seconds")
+
+    const promise =  new Promise(resolvePromise => setTimeout(resolvePromise, milliseconds));
+    //await promise
+    //alert("Sleep Complete 2")
+    return promise
+  }
+
+  const swap = async (transaction, signer) => {
+    console.log("Executing:swap = async (transaction, signer)")
+
+    let address = await signer.getAddress();
+    const tx = await runSwap(transaction, signer)
+    //alert("Starting Sleep")
+    await sleep(20000)
+    //alert("Sleep Complete 2")
+    getBalances(address)
+  }
 
   const getSigner = async provider => {
     provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
     setSigner(signer)
   }
+  
   const isConnected = () => signer !== undefined
   const getWalletAddress = () => {
     signer.getAddress()
       .then(address => {
         setSignerAddress(address)
+        getBalances (address)
+       })
+  }
 
-        // todo: connect weth and uni contracts
-        tokenContract.balanceOf(address)
-          .then(res => {
-            setTokenAmount( Number(ethers.utils.formatEther(res)) )
-          })
-        setTokenName("WETH");
-
-        spCoinContract.balanceOf(address)
-          .then(res => {
-            setSpCoinAmount( Number(ethers.utils.formatEther(res)) )
-          })
-          // ToDo get Token Name
+  const getBalances = (address) => {
+    tokenContract.balanceOf(address)
+      .then(res => {
+        setTokenAmount( Number(ethers.utils.formatEther(res)) )
       })
+    setTokenName("WETH");
+
+    spCoinContract.balanceOf(address)
+      .then(res => {
+        setSpCoinAmount( Number(ethers.utils.formatEther(res)) )
+      })
+    // ToDo get Token Name
   }
 
   if (signer !== undefined) {
@@ -133,7 +170,6 @@ function App() {
                 slippageAmount={slippageAmount} />
             )}
           </div>
-
           <div className="swapBody">
             <CurrencyField
               field="input"
@@ -162,9 +198,10 @@ function App() {
           <div className="swapButtonContainer">
             {isConnected() ? (
               <div
-                onClick={() => runSwap(transaction, signer)}
+               // onClick={() => runSwap(transaction, signer)}
+                onClick={() => swap(transaction, signer)}
                 className="swapButton"
-              >
+              >transaction
                 Swap
               </div>
             ) : (
