@@ -73,10 +73,11 @@ function App() {
 
     let address = await signer.getAddress();
     const tx = await runSwap(transaction, signer)
-    //alert("Starting Sleep")
-    await sleep(20000)
-    //alert("Sleep Complete 2")
-    getBalances(address)
+    alert("Starting Sleep")
+    // await tx.wait();
+    // await sleep(20000)
+    alert("Sleep Complete 2")
+    getBalances(address, tx)
   }
 
   const getSigner = async provider => {
@@ -94,7 +95,9 @@ function App() {
        })
   }
 
-  const getBalances = (address) => {
+  const getBalances = async (address, tx) =>  {
+    if (tx !== undefined)
+      await tx.wait()
     tokenContract.balanceOf(address)
       .then(res => {
         setTokenAmount( Number(ethers.utils.formatEther(res)) )
