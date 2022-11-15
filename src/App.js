@@ -73,10 +73,10 @@ function App() {
 
     let address = await signer.getAddress();
     const tx = await runSwap(transaction, signer)
-    alert("Starting Sleep")
+    // alert("Starting Sleep")
     // await tx.wait();
     // await sleep(20000)
-    alert("Sleep Complete 2")
+    // alert("Sleep Complete 2")
     getBalances(address, tx)
   }
 
