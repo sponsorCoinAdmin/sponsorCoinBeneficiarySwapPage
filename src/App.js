@@ -12,6 +12,15 @@ import BeatLoader from "react-spinners/BeatLoader";
 import { getWethContract as getTokenContract, getSpCoinContract , getPrice, runSwap } from './AlphaRouterService'
 
 function App() {
+
+  const TRANSACTION_STATE = {
+    DISCONNECTED : "CONNECT",
+    CONNECTING : "CONNECTING WALLET",
+    CONNECTED : "SWAP",
+    PENDING : "SWAP PENDING",
+    TRANSACTION_COMPLETE : "SWAP"
+  }
+  
   const [provider, setProvider] = useState(undefined)
   const [signer, setSigner] = useState(undefined)
   const [signerAddress, setSignerAddress] = useState(undefined)
@@ -31,6 +40,10 @@ function App() {
   const [spCoinAmount, setSpCoinAmount] = useState(undefined)
   const [tokenName, setTokenName] = useState("?")
 
+  const [transactionState, setTransactionState] = useState(TRANSACTION_STATE.DISCONNECTED)
+  const [isConnected, setIsConnected] = useState(false);
+// const [transactionState, setTransactionState] = useState(undefined)
+
   useEffect(() => {
     const onLoad = async () => {
       const provider = await new ethers.providers.Web3Provider(window.ethereum)
@@ -42,51 +55,62 @@ function App() {
       const spCoinContract = getSpCoinContract()
       setSpCoinContract(spCoinContract)
 
-      // Listener Events
-      provider.on("accountsChanged", handleAccountsChanged);
-      provider.on("chainChanged", handleChainChanged);
+      // ToDo Listener Events
+      // provider.on("accountsChanged", handleAccountsChanged);
+      // provider.on("chainChanged", handleChainChanged);
     }
     onLoad()
   }, [])
 
+  // ToDo Implement
   const handleAccountsChanged = (accounts) => {
     console.log("AccountsChanged")
     alert("AccountsChanged")
   }
 
+  // ToDo Implement
   const handleChainChanged = (chainId) => {
     console.log("chainId = " + chainId)
     alert("chainId = " + chainId)
   }
 
-  async function sleep(milliseconds) {
-    console.log("Sleeping " + milliseconds/1000 + " Seconds")
-
-    const promise =  new Promise(resolvePromise => setTimeout(resolvePromise, milliseconds));
-    //await promise
-    //alert("Sleep Complete 2")
-    return promise
-  }
-
   const swap = async (transaction, signer) => {
+    setTransactionState(TRANSACTION_STATE.PENDING)
     console.log("Executing:swap = async (transaction, signer)")
 
-    let address = await signer.getAddress();
-    const tx = await runSwap(transaction, signer)
-    // alert("Starting Sleep")
-    // await tx.wait();
-    // await sleep(20000)
-    // alert("Sleep Complete 2")
-    getBalances(address, tx)
+    const tx =  runSwap(transaction, signer)
+    tx.then (tx => {processTransactionSuccess(tx)})
+    .catch(tx => {processTransactionError(tx)});
   }
 
-  const getSigner = async provider => {
-    provider.send("eth_requestAccounts", []);
+const processTransactionSuccess = async (tx) => {
+    alert("SUCCESS => " + JSON.stringify(tx))
+ console.log("SUCCESS => " + JSON.stringify(tx))
+ let address = await signer.getAddress();
+ await getBalances(address, tx)
+ setTransactionState(TRANSACTION_STATE.TRANSACTION_COMPLETE)
+}
+
+const processTransactionError = async (tx) => {
+  alert("ERROR => " + JSON.stringify(tx))
+console.log("ERROR => " + JSON.stringify(tx))
+setTransactionState(TRANSACTION_STATE.TRANSACTION_COMPLETE)
+}
+
+  const connect = async provider => {
+    setTransactionState(TRANSACTION_STATE.CONNECTING)
+    await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
     setSigner(signer)
+     if (signer !== undefined) {
+      setIsConnected(true)
+      setTransactionState(TRANSACTION_STATE.CONNECTED)
+    }
   }
+
   
-  const isConnected = () => signer !== undefined
+//  const isConnected = () => signer !== undefined
+
   const getWalletAddress = () => {
     signer.getAddress()
       .then(address => {
@@ -148,7 +172,7 @@ function App() {
               provider={provider}
               isConnected={isConnected}
               signerAddress={signerAddress}
-              getSigner={getSigner}
+              getSigner={connect}
             />
           </div>
           <div className="my-2 buttonContainer">
@@ -176,7 +200,7 @@ function App() {
           <div className="swapBody">
             <CurrencyField
               field="input"
-            tokenName={tokenName}
+              tokenName={tokenName}
               getSwapPrice={getSwapPrice}
               signer={signer}
               balance={tokenAmount} />
@@ -199,20 +223,18 @@ function App() {
           </div>
 
           <div className="swapButtonContainer">
-            {isConnected() ? (
+            {isConnected ? (
               <div
-               // onClick={() => runSwap(transaction, signer)}
                 onClick={() => swap(transaction, signer)}
                 className="swapButton"
-              >transaction
-                Swap
+              > {transactionState}
               </div>
             ) : (
               <div
-                onClick={() => getSigner(provider)}
+                onClick={() => connect(provider)}
                 className="swapButton"
               >
-                Connect Wallet
+                {transactionState}
               </div>
             )}
           </div>

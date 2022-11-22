@@ -75,7 +75,8 @@ export const runSwap = async (transaction, signer) => {
   )
 
   // return await signer.sendTransaction(transaction).wait()
-  const tx = signer.sendTransaction(transaction);
-  console.log ("transaction:\n" + JSON.stringify(tx));
+  const tx = signer.sendTransaction(transaction)
+              // .then (tx => {console.log("SUCCESS => " + JSON.stringify(tx))})
+              // .catch(tx => {console.log("ERROR => " + JSON.stringify(tx))});
   return  tx
 }
