@@ -45,5 +45,4 @@ const ConfigModal = props => {
   )
 }
 
-
 export default ConfigModal

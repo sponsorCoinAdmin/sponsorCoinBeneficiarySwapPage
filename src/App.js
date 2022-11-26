@@ -7,6 +7,7 @@ import PageButton from './components/PageButton';
 import ConnectButton from './components/ConnectButton';
 import ConfigModal from './components/ConfigModal';
 import CurrencyField from './components/CurrencyField';
+//import AllowNumbers from './components/AllowNumbers';
 
 import BeatLoader from "react-spinners/BeatLoader";
 import { getWethContract as getTokenContract, getSpCoinContract , getPrice, runSwap } from './AlphaRouterService'
@@ -18,7 +19,8 @@ function App() {
     CONNECTING : "CONNECTING WALLET",
     CONNECTED : "SWAP",
     PENDING : "SWAP PENDING",
-    TRANSACTION_COMPLETE : "SWAP"
+    REJECTED : "TRANSACTION REJECTED",
+    COMPLETE : "SWAP"
   }
   
   const [provider, setProvider] = useState(undefined)
@@ -88,13 +90,15 @@ const processTransactionSuccess = async (tx) => {
  console.log("SUCCESS => " + JSON.stringify(tx))
  let address = await signer.getAddress();
  await getBalances(address, tx)
- setTransactionState(TRANSACTION_STATE.TRANSACTION_COMPLETE)
+ setTransactionState(TRANSACTION_STATE.COMPLETE)
 }
 
 const processTransactionError = async (tx) => {
-  alert("ERROR => " + JSON.stringify(tx))
-console.log("ERROR => " + JSON.stringify(tx))
-setTransactionState(TRANSACTION_STATE.TRANSACTION_COMPLETE)
+  setTransactionState(TRANSACTION_STATE.REJECTED)
+  //alert("ERROR => " + JSON.stringify(tx))
+  alert("ERROR => " + JSON.stringify(tx.reason))
+  console.log("ERROR => " + JSON.stringify(tx))
+  setTransactionState(TRANSACTION_STATE.COMPLETE)
 }
 
   const connect = async provider => {
@@ -238,6 +242,10 @@ setTransactionState(TRANSACTION_STATE.TRANSACTION_COMPLETE)
               </div>
             )}
           </div>
+          {/* <div>
+            ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
+            <AllowNumbers />
+          </div> */}
         </div>
       </div>
     </div>
