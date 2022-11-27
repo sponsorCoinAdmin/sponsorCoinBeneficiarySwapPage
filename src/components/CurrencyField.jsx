@@ -25,7 +25,6 @@ const CurrencyField = props => {
       {/* <input name="firstName" onChange={"alert('KeyPressed')"} /> */}
         {props.loading ? (
           <div className="spinnerContainer">
-// FIX THIS            {inputValue => (inputValue === 0 ? "0.0" : <props.spinner />)}
             {<props.spinner />}
           </div>
         ) : (

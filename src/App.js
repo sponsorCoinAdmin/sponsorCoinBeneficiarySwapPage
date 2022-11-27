@@ -146,18 +146,27 @@ const processTransactionError = async (tx) => {
   const getSwapPrice = (inputAmount) => {
     setLoading(true)
     setInputAmount(inputAmount)
+    const minThreashHold = 0;
 
-    const swap = getPrice(
-      inputAmount,
-      slippageAmount,
-      Math.floor(Date.now()/1000 + (deadlineMinutes * 60)),
-      signerAddress
-    ).then(data => {
-      setTransaction(data[0])
-      setOutputAmount(data[1])
-      setRatio(data[2])
-      setLoading(false)
-    })
+    if (inputAmount > minThreashHold) {
+      const swap = getPrice(
+        inputAmount,
+        slippageAmount,
+        Math.floor(Date.now()/1000 + (deadlineMinutes * 60)),
+        signerAddress
+      ).then(data => {
+        setTransaction(data[0])
+        setOutputAmount(data[1])
+        setRatio(data[2])
+        setLoading(false)
+      })
+    }
+    else {
+      setTransaction(TRANSACTION_STATE.COMPLETE)
+      setOutputAmount(0.0)
+      setRatio()
+      setLoading(false) 
+    }
   }
 
   return (
