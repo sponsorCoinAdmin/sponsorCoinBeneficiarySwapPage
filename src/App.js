@@ -7,7 +7,6 @@ import PageButton from './components/PageButton';
 import ConnectButton from './components/ConnectButton';
 import ConfigModal from './components/ConfigModal';
 import CurrencyField from './components/CurrencyField';
-//import AllowNumbers from './components/AllowNumbers';
 
 import BeatLoader from "react-spinners/BeatLoader";
 import { getWethContract as getTokenContract, getSpCoinContract , getPrice, runSwap } from './AlphaRouterService'
@@ -44,11 +43,16 @@ function App() {
 
   const [transactionState, setTransactionState] = useState(TRANSACTION_STATE.DISCONNECTED)
   const [isConnected, setIsConnected] = useState(false);
-// const [transactionState, setTransactionState] = useState(undefined)
+
+  // Page Configuration Fields
+  const [swapTitle, setSwapTitle] = useState("Beneficary: Undefined");
 
   useEffect(() => {
+
+    setConfigurations()
+
     const onLoad = async () => {
-      const provider = await new ethers.providers.Web3Provider(window.ethereum)
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
       setProvider(provider)
 
       const tokenContract = getTokenContract()
@@ -63,6 +67,16 @@ function App() {
     }
     onLoad()
   }, [])
+
+  const setConfigurations = () => {
+
+    let swapTitle = "Beneficary: Sponsor's Coin"
+    swapTitle = ""
+
+    if (swapTitle !== undefined && swapTitle.length > 0)
+    setSwapTitle(swapTitle)
+
+  }
 
   // ToDo Implement
   const handleAccountsChanged = (accounts) => {
@@ -163,7 +177,7 @@ const processTransactionError = async (tx) => {
     }
     else {
       setTransaction(TRANSACTION_STATE.COMPLETE)
-      setOutputAmount(0.0)
+      setOutputAmount("0.0")
       setRatio()
       setLoading(false) 
     }
@@ -197,7 +211,7 @@ const processTransactionError = async (tx) => {
       <div className="appBody">
         <div className="swapContainer">
           <div className="swapHeader">
-            <span className="swapText">Swap</span>
+            <span className="swapText">{swapTitle}</span>
             <span className="gearContainer" onClick={() => setShowModal(true)}>
               <GearFill />
             </span>
@@ -251,10 +265,6 @@ const processTransactionError = async (tx) => {
               </div>
             )}
           </div>
-          {/* <div>
-            ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
-            <AllowNumbers />
-          </div> */}
         </div>
       </div>
     </div>

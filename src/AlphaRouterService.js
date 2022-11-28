@@ -2,7 +2,7 @@ const { AlphaRouter } = require('@uniswap/smart-order-router')
 const { Token, CurrencyAmount, TradeType, Percent } = require('@uniswap/sdk-core')
 const { ethers, BigNumber } = require('ethers')
 const JSBI = require('jsbi')
-const ERC20ABI = require('./abi.json')
+const ERC20ABI = require('./interfaces/abi.json')
 
 const V3_SWAP_ROUTER_ADDRESS = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45'
 const REACT_APP_INFURA_URL_TESTNET = process.env.REACT_APP_INFURA_URL_TESTNET
@@ -13,23 +13,23 @@ const chainId = 5
 const web3Provider = new ethers.providers.JsonRpcProvider(REACT_APP_INFURA_URL_TESTNET)
 const router = new AlphaRouter({ chainId: chainId, provider: web3Provider })
 
-const name0 = 'Wrapped Ether'
-const symbol0 = 'WETH'
-const address0 = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
+let tokenName = 'Wrapped Ether'
+let tokenSymbol = 'WETH'
+let tokenAddress = '0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6'
 
 const decimals0 = 18
 
-const name1 = 'Sponsor Coin'
-const symbol1 = 'SPCoin'
-const address1 = '0x3Cb3d2655dB27d0ef62f0B77E0e13c06630317Ef'
+const spCoinName = 'Sponsor Coin'
+const spCoinSymbol = 'SPCoin'
+const spCoinAddress = '0x3Cb3d2655dB27d0ef62f0B77E0e13c06630317Ef'
 
 const decimals1 = 18
 
-const WETH = new Token(chainId, address0, decimals0, symbol0, name0)
-const SPCOIN = new Token(chainId, address1, decimals1, symbol1, name1)
+const WETH = new Token(chainId, tokenAddress, decimals0, tokenSymbol, tokenName)
+const SPCOIN = new Token(chainId, spCoinAddress, decimals1, spCoinSymbol, spCoinName)
 
-export const getWethContract = () => new ethers.Contract(address0, ERC20ABI, web3Provider)
-export const getSpCoinContract = () => new ethers.Contract(address1, ERC20ABI, web3Provider)
+export const getWethContract = () => new ethers.Contract(tokenAddress, ERC20ABI, web3Provider)
+export const getSpCoinContract = () => new ethers.Contract(spCoinAddress, ERC20ABI, web3Provider)
 
 export const getPrice = async (inputAmount, slippageAmount, deadline, walletAddress) => {
   const percentSlippage = new Percent(slippageAmount, 100)
