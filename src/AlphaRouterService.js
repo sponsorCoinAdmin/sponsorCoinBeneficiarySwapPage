@@ -3,6 +3,7 @@ const { Token, CurrencyAmount, TradeType, Percent } = require('@uniswap/sdk-core
 const { ethers, BigNumber } = require('ethers')
 const JSBI = require('jsbi')
 const ERC20ABI = require('./interfaces/abi.json')
+const SPCOINABI = require('./interfaces/abi.json')
 
 const V3_SWAP_ROUTER_ADDRESS = '0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45'
 const REACT_APP_INFURA_URL_TESTNET = process.env.REACT_APP_INFURA_URL_TESTNET
@@ -29,7 +30,7 @@ const WETH = new Token(chainId, tokenAddress, decimals0, tokenSymbol, tokenName)
 const SPCOIN = new Token(chainId, spCoinAddress, decimals1, spCoinSymbol, spCoinName)
 
 export const getWethContract = () => new ethers.Contract(tokenAddress, ERC20ABI, web3Provider)
-export const getSpCoinContract = () => new ethers.Contract(spCoinAddress, ERC20ABI, web3Provider)
+export const getSpCoinContract = () => new ethers.Contract(spCoinAddress, SPCOINABI, web3Provider)
 
 export const getPrice = async (inputAmount, slippageAmount, deadline, walletAddress) => {
   const percentSlippage = new Percent(slippageAmount, 100)
