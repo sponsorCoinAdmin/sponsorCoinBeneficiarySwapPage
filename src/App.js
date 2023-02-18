@@ -125,7 +125,6 @@ const processTransactionError = async (tx) => {
       setTransactionState(TRANSACTION_STATE.CONNECTED)
     }
   }
-
   
 //  const isConnected = () => signer !== undefined
 
