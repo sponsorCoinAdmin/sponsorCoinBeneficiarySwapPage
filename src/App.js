@@ -12,6 +12,16 @@ import BeatLoader from "react-spinners/BeatLoader";
 import { getWethContract as getTokenContract, getSpCoinContract , getPrice, runSwap } from './AlphaRouterService'
 
 function App() {
+
+  const TRANSACTION_STATE = {
+    DISCONNECTED : "CONNECT",
+    CONNECTING : "CONNECTING WALLET",
+    CONNECTED : "SWAP",
+    PENDING : "SWAP PENDING",
+    REJECTED : "TRANSACTION REJECTED",
+    COMPLETE : "SWAP"
+  }
+  
   const [provider, setProvider] = useState(undefined)
   const [signer, setSigner] = useState(undefined)
   const [signerAddress, setSignerAddress] = useState(undefined)
@@ -31,9 +41,18 @@ function App() {
   const [spCoinAmount, setSpCoinAmount] = useState(undefined)
   const [tokenName, setTokenName] = useState("?")
 
+  const [transactionState, setTransactionState] = useState(TRANSACTION_STATE.DISCONNECTED)
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Page Configuration Fields
+  const [swapTitle, setSwapTitle] = useState("Beneficary: Undefined");
+
   useEffect(() => {
+
+    setConfigurations()
+
     const onLoad = async () => {
-      const provider = await new ethers.providers.Web3Provider(window.ethereum)
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
       setProvider(provider)
 
       const tokenContract = getTokenContract()
@@ -42,50 +61,73 @@ function App() {
       const spCoinContract = getSpCoinContract()
       setSpCoinContract(spCoinContract)
 
-      // Listener Events
-      provider.on("accountsChanged", handleAccountsChanged);
-      provider.on("chainChanged", handleChainChanged);
+      // ToDo Listener Events
+      // provider.on("accountsChanged", handleAccountsChanged);
+      // provider.on("chainChanged", handleChainChanged);
     }
     onLoad()
   }, [])
 
+  const setConfigurations = () => {
+
+    let swapTitle = "Beneficary: Sponsor's Coin"
+    swapTitle = ""
+
+    if (swapTitle !== undefined && swapTitle.length > 0)
+    setSwapTitle(swapTitle)
+
+  }
+
+  // ToDo Implement
   const handleAccountsChanged = (accounts) => {
     console.log("AccountsChanged")
     alert("AccountsChanged")
   }
 
+  // ToDo Implement
   const handleChainChanged = (chainId) => {
     console.log("chainId = " + chainId)
     alert("chainId = " + chainId)
   }
 
-  async function sleep(milliseconds) {
-    console.log("Sleeping " + milliseconds/1000 + " Seconds")
-
-    const promise =  new Promise(resolvePromise => setTimeout(resolvePromise, milliseconds));
-    //await promise
-    //alert("Sleep Complete 2")
-    return promise
-  }
-
   const swap = async (transaction, signer) => {
+    setTransactionState(TRANSACTION_STATE.PENDING)
     console.log("Executing:swap = async (transaction, signer)")
 
-    let address = await signer.getAddress();
-    const tx = await runSwap(transaction, signer)
-    //alert("Starting Sleep")
-    await sleep(20000)
-    //alert("Sleep Complete 2")
-    getBalances(address)
+    const tx =  runSwap(transaction, signer)
+    tx.then (tx => {processTransactionSuccess(tx)})
+    .catch(tx => {processTransactionError(tx)});
   }
 
-  const getSigner = async provider => {
-    provider.send("eth_requestAccounts", []);
+const processTransactionSuccess = async (tx) => {
+    alert("SUCCESS => " + JSON.stringify(tx))
+ console.log("SUCCESS => " + JSON.stringify(tx))
+ let address = await signer.getAddress();
+ await getBalances(address, tx)
+ setTransactionState(TRANSACTION_STATE.COMPLETE)
+}
+
+const processTransactionError = async (tx) => {
+  setTransactionState(TRANSACTION_STATE.REJECTED)
+  //alert("ERROR => " + JSON.stringify(tx))
+  alert("ERROR => " + JSON.stringify(tx.reason))
+  console.log("ERROR => " + JSON.stringify(tx))
+  setTransactionState(TRANSACTION_STATE.COMPLETE)
+}
+
+  const connect = async provider => {
+    setTransactionState(TRANSACTION_STATE.CONNECTING)
+    await provider.send("eth_requestAccounts", []);
     const signer = provider.getSigner();
     setSigner(signer)
+     if (signer !== undefined) {
+      setIsConnected(true)
+      setTransactionState(TRANSACTION_STATE.CONNECTED)
+    }
   }
   
-  const isConnected = () => signer !== undefined
+//  const isConnected = () => signer !== undefined
+
   const getWalletAddress = () => {
     signer.getAddress()
       .then(address => {
@@ -94,7 +136,9 @@ function App() {
        })
   }
 
-  const getBalances = (address) => {
+  const getBalances = async (address, tx) =>  {
+    if (tx !== undefined)
+      await tx.wait()
     tokenContract.balanceOf(address)
       .then(res => {
         setTokenAmount( Number(ethers.utils.formatEther(res)) )
@@ -115,18 +159,27 @@ function App() {
   const getSwapPrice = (inputAmount) => {
     setLoading(true)
     setInputAmount(inputAmount)
+    const minThreashHold = 0;
 
-    const swap = getPrice(
-      inputAmount,
-      slippageAmount,
-      Math.floor(Date.now()/1000 + (deadlineMinutes * 60)),
-      signerAddress
-    ).then(data => {
-      setTransaction(data[0])
-      setOutputAmount(data[1])
-      setRatio(data[2])
-      setLoading(false)
-    })
+    if (inputAmount > minThreashHold) {
+      const swap = getPrice(
+        inputAmount,
+        slippageAmount,
+        Math.floor(Date.now()/1000 + (deadlineMinutes * 60)),
+        signerAddress
+      ).then(data => {
+        setTransaction(data[0])
+        setOutputAmount(data[1])
+        setRatio(data[2])
+        setLoading(false)
+      })
+    }
+    else {
+      setTransaction(TRANSACTION_STATE.COMPLETE)
+      setOutputAmount("0.0")
+      setRatio()
+      setLoading(false) 
+    }
   }
 
   return (
@@ -145,7 +198,7 @@ function App() {
               provider={provider}
               isConnected={isConnected}
               signerAddress={signerAddress}
-              getSigner={getSigner}
+              getSigner={connect}
             />
           </div>
           <div className="my-2 buttonContainer">
@@ -157,7 +210,7 @@ function App() {
       <div className="appBody">
         <div className="swapContainer">
           <div className="swapHeader">
-            <span className="swapText">Swap</span>
+            <span className="swapText">{swapTitle}</span>
             <span className="gearContainer" onClick={() => setShowModal(true)}>
               <GearFill />
             </span>
@@ -173,7 +226,7 @@ function App() {
           <div className="swapBody">
             <CurrencyField
               field="input"
-            tokenName={tokenName}
+              tokenName={tokenName}
               getSwapPrice={getSwapPrice}
               signer={signer}
               balance={tokenAmount} />
@@ -196,20 +249,18 @@ function App() {
           </div>
 
           <div className="swapButtonContainer">
-            {isConnected() ? (
+            {isConnected ? (
               <div
-               // onClick={() => runSwap(transaction, signer)}
                 onClick={() => swap(transaction, signer)}
                 className="swapButton"
-              >transaction
-                Swap
+              > {transactionState}
               </div>
             ) : (
               <div
-                onClick={() => getSigner(provider)}
+                onClick={() => connect(provider)}
                 className="swapButton"
               >
-                Connect Wallet
+                {transactionState}
               </div>
             )}
           </div>

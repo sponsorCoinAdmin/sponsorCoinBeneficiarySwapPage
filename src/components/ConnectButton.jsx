@@ -1,5 +1,5 @@
 import React from 'react'
-import PageButton from './../components/PageButton'
+import PageButton from './PageButton'
 
 const ConnectButton = props => {
   const { isConnected, signerAddress, getSigner, provider } = props
@@ -7,9 +7,10 @@ const ConnectButton = props => {
 
   return (
     <>
-      {isConnected() ? (
+      {isConnected ? (
         <div className="buttonContainer">
           <PageButton name={displayAddress} />
+          {/* {alert("displayAddress = " + displayAddress)} */}
         </div>
       ) : (
         <div
